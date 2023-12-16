@@ -1,0 +1,15 @@
+version: "2"
+
+services:
+  game:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - PYTHONUNBUFFERED=1
+    image: fiction
+    ports:
+      - "5808:5808"
+    volumes:
+      - .:/code
+    command: ["python", "main.py"]
