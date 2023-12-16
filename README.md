@@ -1,5 +1,5 @@
 # How to run
 
 ```
-docker-compose up
+docker-compose run game
 ```

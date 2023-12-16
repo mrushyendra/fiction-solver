@@ -10,6 +10,8 @@ services:
     image: fiction
     ports:
       - "5808:5808"
+    stdin_open: true
+    tty: true
     volumes:
       - .:/code
     command: ["python", "main.py"]
