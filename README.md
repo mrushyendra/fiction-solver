@@ -1,5 +1,11 @@
-# How to run
+# Installation
 
 ```
-docker-compose run game
+./run.sh build
+```
+
+# To play
+```
+./run.sh start
+./run.sh stop # to stop the game
 ```

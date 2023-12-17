@@ -14,4 +14,4 @@ services:
     tty: true
     volumes:
       - .:/code
-    command: ["python", "main.py"]
+    command: ["python", "application/main.py"]

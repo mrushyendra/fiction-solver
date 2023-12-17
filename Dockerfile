@@ -17,4 +17,4 @@ COPY . $APP_CODE_DIR
 
 EXPOSE 5808
 
-CMD ["python", "main.py"]
+CMD ["python", "application/main.py"]
