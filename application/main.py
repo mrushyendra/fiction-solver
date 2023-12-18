@@ -39,19 +39,38 @@ class GameState:
             print("Clue must be 5 letters long")
             return False
 
-        num_lies: int = 0
         guess = self.guesses[-1]
-        for i, c in enumerate(clue):
-            match c:
-                case 'X':
-                    if guess[i] in self.word:
-                        num_lies += 1
-                case 'Y':
-                    if guess[i] != self.word[i]:
-                        num_lies += 1
-                case '~':
-                    if guess[i] == self.word[i] or guess[i] not in self.word:
-                        num_lies += 1
+        # Build up the correct clue from the guess first
+        correct_clue = ""
+        for i, c in enumerate(guess):
+            if c == self.word[i]:
+                correct_clue += "Y"
+            elif c not in self.word:
+                correct_clue += "X"
+            else: # c exists somewhere else in the word
+                word_char_count = self.word.count(c)
+                guess_char_count = guess.count(c)
+                if guess_char_count == 1:
+                    correct_clue += "~"
+                else: # guess_char_count > 1
+                    def num_guesses_of_that_char_correct(word, guess, c):
+                        return sum(1 for j, char in enumerate(word) if char == c and guess[j] == c)
+
+                    def num_guesses_of_that_char_incorrect_before_current(word, guess, c, i):
+                        return sum(1 for j, char in enumerate(guess) if char == c and word[j] != c and j < i)
+
+                    # Follows wordle rules. If the same character occurs multiple times in a guess, the guess characters
+                    # that occur in the correct positions are marked correct ('Y'). From left-to-right, the remaining
+                    # guess characters are marked with a ('~') if the word contains that character elsewhere, and there
+                    # hasn't already been a previous ('~') allocated for that character. Otherwise, the character is marked
+                    # incorrect ('X').
+                    num_squiggles_left = word_char_count - num_guesses_of_that_char_correct(self.word, guess, c) - num_guesses_of_that_char_incorrect_before_current(self.word, guess, c, i)
+                    if num_squiggles_left > 0:
+                        correct_clue += "~"
+                    else:
+                        correct_clue += "X"
+
+        num_lies: int = sum(1 if c != correct_clue[i] else 0 for i, c in enumerate(clue))
         if num_lies != 1:
             print(f"Clue must contain exactly one lie. Your clue had {num_lies} lies.")
             return False

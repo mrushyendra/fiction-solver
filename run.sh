@@ -17,7 +17,7 @@ elif [[ $COMMAND == "stop" ]]; then
   exit
 elif [[ $COMMAND == "test" ]]; then
   echo "===== Running test suite ====="
-  docker-compose run --rm game pytest # -p "${@:2}"
+  docker-compose run --rm game pytest -s
   exit
 fi
 
