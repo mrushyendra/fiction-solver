@@ -27,6 +27,7 @@ class GameState:
     clues: list[str]
     # A map of fact-or-fiction checks, from 0-indexed guess number to a tuple of (0-indexed letter position, is_true)
     checks: dict[int, tuple[int, bool]]
+    known_char: str
 
     def guess(self, guess: str) -> bool:
         guess = guess.lower()
@@ -128,6 +129,7 @@ class GameState:
 
         return (f"-----------------------\n"
                 f"Number of guesses: {len(self.guesses)}\n"
+                f"Known character: {self.known_char}\n"
                 f"{guesses_str}"
                 f"-----------------------")
 
@@ -143,11 +145,19 @@ def play() -> None:
             word = ""
             print("Word must be 5 letters long. Please try again.")
 
+    known_char: Optional[str] = None
+    while not known_char:
+        known_char = input("Lie-brarian, enter a known character in the word: ")
+        if len(known_char) != 1 or known_char not in word:
+            known_char = ""
+            print("Known character must be a single character in the word. Please try again.")
+
     game_state = GameState(
         word=word.lower(),
         guesses=[],
         clues=[],
         checks={},
+        known_char=known_char.lower(),
     )
 
     while True:

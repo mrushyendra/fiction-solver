@@ -15,6 +15,7 @@ def test_guess(word, is_valid, num_guesses):
         guesses=[],
         clues=[],
         checks={},
+        known_char="h",
     )
     guess = word
     assert (game_state.guess(guess) == is_valid)
@@ -43,6 +44,7 @@ def test_clue(word, guess, clue, is_valid, num_clues):
         guesses=[guess],
         clues=[],
         checks={},
+        known_char=word[0],
     )
     assert (game_state.clue(clue) == is_valid)
     assert (len(game_state.clues) == num_clues)
@@ -61,6 +63,7 @@ def test_valid_check(word, guess, clue, check_position, expected):
         guesses=[guess],
         clues=[clue],
         checks={},
+        known_char=word[0],
     )
     game_state.check(check_position)
     assert(len(game_state.checks) == 1)
@@ -73,6 +76,7 @@ def test_invalid_check():
         guesses=["hotel"],
         clues=["Y~XYX"],
         checks={},
+        known_char="h",
     )
     game_state.check(5) # Out of bounds of the word
     assert(len(game_state.checks) == 0)
