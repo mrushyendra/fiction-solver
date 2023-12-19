@@ -1,5 +1,9 @@
+import random
 from dataclasses import dataclass
+from math import floor
 from typing import Optional
+
+from word_list import word_list
 
 
 # An implementation of https://www.allplay.com/board-games/fiction/:
@@ -62,9 +66,10 @@ class GameState:
                     # Follows wordle rules. If the same character occurs multiple times in a guess, the guess characters
                     # that occur in the correct positions are marked correct ('Y'). From left-to-right, the remaining
                     # guess characters are marked with a ('~') if the word contains that character elsewhere, and there
-                    # hasn't already been a previous ('~') allocated for that character. Otherwise, the character is marked
-                    # incorrect ('X').
-                    num_squiggles_left = word_char_count - num_guesses_of_that_char_correct(self.word, guess, c) - num_guesses_of_that_char_incorrect_before_current(self.word, guess, c, i)
+                    # hasn't already been a previous ('~') allocated for that character. Otherwise, the character is
+                    # marked incorrect ('X').
+                    num_squiggles_left = (word_char_count - num_guesses_of_that_char_correct(self.word, guess, c)
+                                          - num_guesses_of_that_char_incorrect_before_current(self.word, guess, c, i))
                     if num_squiggles_left > 0:
                         correct_clue += "~"
                     else:
@@ -125,10 +130,13 @@ class GameState:
 def play() -> None:
     word: Optional[str] = None
     while not word:
-        word = input("Lie-brarian, pick a 5 letter word:")
-        if len(word) != 5:
+        word = input("Lie-brarian, type a 5 letter word. To use a random word instead, press enter.\n")
+        if len(word) == 0:
+            word = word_list[floor(random.Random().random() * len(word_list))]
+            print(f"Your word is: {word}")
+        elif len(word) != 5:
+            word = ""
             print("Word must be 5 letters long. Please try again.")
-            continue
 
     game_state = GameState(
         word=word,
@@ -139,7 +147,7 @@ def play() -> None:
 
     while True:
         while True:
-            guess = input(f"Attempt #{len(game_state.guesses)}. Guess a word: ")
+            guess = input(f"Attempt #{len(game_state.guesses) + 1}. Guess a word: ")
             if game_state.guess(guess):
                 break
         if game_state.is_game_over():
@@ -150,7 +158,8 @@ def play() -> None:
             if game_state.clue(clue):
                 break
 
-        check = input("Enter a fact-or-fiction check for a position in the clue (e.g. 1, 2, 3). Leave blank to skip. ")
+        check = input("To perform a fact-or-fiction check, enter the position of the letter in the clue, (e.g. 1, 2, 3)"
+                      ". Leave blank to skip.")
         if check:
             game_state.check(int(check) - 1)
 
