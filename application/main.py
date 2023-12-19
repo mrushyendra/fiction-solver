@@ -29,6 +29,7 @@ class GameState:
     checks: dict[int, tuple[int, bool]]
 
     def guess(self, guess: str) -> bool:
+        guess = guess.lower()
         if len(guess) != 5:
             print("Guess must be 5 letters long")
             return False
@@ -153,7 +154,7 @@ def play() -> None:
             print("Word must be 5 letters long. Please try again.")
 
     game_state = GameState(
-        word=word,
+        word=word.lower(),
         guesses=[],
         clues=[],
         checks={},

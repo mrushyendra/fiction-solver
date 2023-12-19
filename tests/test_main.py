@@ -4,13 +4,17 @@ from application.main import GameState
 
 
 @pytest.mark.parametrize("word, is_valid, num_guesses",
-                         [("hello", True, 1), ("world", True, 1), ("longer_than_5_chars", False, 0)])
+                         [("hello", True, 1),
+                          ("world", True, 1),
+                          ("longer_than_5_chars", False, 0),
+                          ("HeLlO", True, 1) # case insensitive
+                         ])
 def test_guess(word, is_valid, num_guesses):
     game_state = GameState(
         word="hello",
         guesses=[],
         clues=[],
-        checks=[],
+        checks={},
     )
     guess = word
     assert (game_state.guess(guess) == is_valid)
@@ -38,7 +42,7 @@ def test_clue(word, guess, clue, is_valid, num_clues):
         word=word,
         guesses=[guess],
         clues=[],
-        checks=[],
+        checks={},
     )
     assert (game_state.clue(clue) == is_valid)
     assert (len(game_state.clues) == num_clues)
