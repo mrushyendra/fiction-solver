@@ -9,7 +9,7 @@ if [[ $COMMAND == "build" ]]; then
   exit
 elif [[ $COMMAND == "start" ]]; then
   echo "===== Starting game up... ====="
-  docker-compose run game
+  docker-compose run -e PYTHONPATH=. game
   exit
 elif [[ $COMMAND == "stop" ]]; then
   echo "===== Killing services forcefully ====="

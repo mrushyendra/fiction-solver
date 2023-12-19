@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from math import floor
 from typing import Optional
 
-from word_list import word_list
+from application.word_list import word_list
 
 
 # An implementation of https://www.allplay.com/board-games/fiction/:
