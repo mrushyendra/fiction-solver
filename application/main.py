@@ -25,8 +25,8 @@ class GameState:
     word: str
     guesses: list[str]
     clues: list[str]
-    # list of fact-or-fiction checks, each check is a tuple of (guess number, letter, is_true)
-    checks: list[tuple[int, int, bool]]
+    # A map of fact-or-fiction checks, from 0-indexed guess number to a tuple of (0-indexed letter position, is_true)
+    checks: dict[int, tuple[int, bool]]
 
     def guess(self, guess: str) -> bool:
         if len(guess) != 5:
@@ -89,7 +89,7 @@ class GameState:
             print("You're out of fact-or-fiction checks!")
             return
         if position >=5 or position < 0:
-            print("Position must be between 1 and 5")
+            print("Position must be between 1 and 5 inclusive")
             return
 
         clue = self.clues[-1][position]
@@ -114,8 +114,7 @@ class GameState:
                 else:
                     fact = False
                     print("Fiction")
-        check = (len(self.guesses), position, fact)
-        self.checks.append(check)
+        self.checks[len(self.guesses) - 1] = (position, fact)
 
     def is_game_over(self) -> bool:
         if self.guesses and self.guesses[-1] == self.word:
@@ -126,11 +125,26 @@ class GameState:
             return True
         return False
 
+    def __str__(self):
+        guesses_str = ""
+        for i, (guess, clue) in enumerate(zip(self.guesses, self.clues)):
+            guesses_str += f"#{i + 1}: {guess}\n"
+            guesses_str += f"#{i + 1}: {clue}\n"
+            if self.checks.get(i):
+                position, is_true = self.checks[i]
+                is_fact = "Fact" if is_true else "Fiction"
+                guesses_str += f"#{i + 1}: Clue for '{guess[position]}' at position {position + 1} is {is_fact}\n"
+
+        return (f"-----------------------\n"
+                f"Number of guesses: {len(self.guesses)}\n"
+                f"{guesses_str}"
+                f"-----------------------")
+
 
 def play() -> None:
     word: Optional[str] = None
     while not word:
-        word = input("Lie-brarian, type a 5 letter word. To use a random word instead, press enter.\n")
+        word = input("Lie-brarian, type a 5 letter word. To use a random word instead, press enter: ")
         if len(word) == 0:
             word = word_list[floor(random.Random().random() * len(word_list))]
             print(f"Your word is: {word}")
@@ -142,7 +156,7 @@ def play() -> None:
         word=word,
         guesses=[],
         clues=[],
-        checks=[],
+        checks={},
     )
 
     while True:
@@ -159,9 +173,11 @@ def play() -> None:
                 break
 
         check = input("To perform a fact-or-fiction check, enter the position of the letter in the clue, (e.g. 1, 2, 3)"
-                      ". Leave blank to skip.")
+                      ". Leave blank to skip: ")
         if check:
             game_state.check(int(check) - 1)
+
+        print(game_state)
 
 
 if __name__ == "__main__":
