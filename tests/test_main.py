@@ -46,3 +46,33 @@ def test_clue(word, guess, clue, is_valid, num_clues):
     )
     assert (game_state.clue(clue) == is_valid)
     assert (len(game_state.clues) == num_clues)
+
+@pytest.mark.parametrize("word, guess, clue, check_position, expected",
+                         [("world", "world", "YYYYX", 4, (4, False)),
+                          ("world", "world", "YYYY~", 4, (4, False)),
+                          ("world", "world", "YY~YY", 0, (0, True)),
+                          ("banal", "annal", "~~YYY", 1, (1, False)),
+                          ("banal", "allow", "Y~XXX", 2, (2, True)),
+                          ("banal", "banal", "YYXYY", 0, (0, True))
+                          ])
+def test_valid_check(word, guess, clue, check_position, expected):
+    game_state = GameState(
+        word=word,
+        guesses=[guess],
+        clues=[clue],
+        checks={},
+    )
+    game_state.check(check_position)
+    assert(len(game_state.checks) == 1)
+    assert(game_state.checks[0] == expected)
+
+
+def test_invalid_check():
+    game_state = GameState(
+        word="hello",
+        guesses=["hotel"],
+        clues=["Y~XYX"],
+        checks={},
+    )
+    game_state.check(5) # Out of bounds of the word
+    assert(len(game_state.checks) == 0)

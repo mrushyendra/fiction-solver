@@ -36,16 +36,7 @@ class GameState:
         self.guesses.append(guess)
         return True
 
-    def clue(self, clue: str) -> bool:
-        if any(c not in "XY~" for c in clue):
-            print("Clue must be a string of X, Y, or ~")
-            return False
-        if len(clue) != 5:
-            print("Clue must be 5 letters long")
-            return False
-
-        guess = self.guesses[-1]
-        # Build up the correct clue from the guess first
+    def _generate_correct_clue(self, guess: str) -> str:
         correct_clue = ""
         for i, c in enumerate(guess):
             if c == self.word[i]:
@@ -75,6 +66,19 @@ class GameState:
                         correct_clue += "~"
                     else:
                         correct_clue += "X"
+        return correct_clue
+
+    def clue(self, clue: str) -> bool:
+        if any(c not in "XY~" for c in clue):
+            print("Clue must be a string of X, Y, or ~")
+            return False
+        if len(clue) != 5:
+            print("Clue must be 5 letters long")
+            return False
+
+        guess = self.guesses[-1]
+        # Build up the correct clue from the guess first
+        correct_clue = self._generate_correct_clue(guess)
 
         num_lies: int = sum(1 if c != correct_clue[i] else 0 for i, c in enumerate(clue))
         if num_lies != 1:
@@ -93,29 +97,15 @@ class GameState:
             print("Position must be between 1 and 5 inclusive")
             return
 
-        clue = self.clues[-1][position]
-        guess = self.guesses[-1][position]
-        fact = True
-        match clue:
-            case "X":
-                if guess in self.word:
-                    fact = False
-                    print("Fiction")
-                else:
-                    print("Fact")
-            case "Y":
-                if guess == self.word[position]:
-                    print("Fact")
-                else:
-                    fact = False
-                    print("Fiction")
-            case "~":
-                if clue in self.word and self.word[position] != clue:
-                    print("Fact")
-                else:
-                    fact = False
-                    print("Fiction")
-        self.checks[len(self.guesses) - 1] = (position, fact)
+        clue = self.clues[-1]
+        guess = self.guesses[-1]
+        correct_clue = self._generate_correct_clue(guess)
+        if correct_clue[position] != clue[position]:
+            print("Fiction")
+            self.checks[len(self.guesses) - 1] = (position, False)
+        else:
+            print("Fact")
+            self.checks[len(self.guesses) - 1] = (position, True)
 
     def is_game_over(self) -> bool:
         if self.guesses and self.guesses[-1] == self.word:
