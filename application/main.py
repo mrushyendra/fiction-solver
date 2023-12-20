@@ -1,8 +1,10 @@
+import copy
 import random
 from dataclasses import dataclass
 from math import floor
 from typing import Optional
 
+from application.solver import SolutionSpace, expand, initialize_solution_space
 from application.word_list import word_list
 
 
@@ -160,6 +162,9 @@ def play() -> None:
         known_char=known_char.lower(),
     )
 
+    initial_solution_space = initialize_solution_space()
+    solution_spaces = [initial_solution_space]
+
     while True:
         while True:
             guess = input(f"Attempt #{len(game_state.guesses) + 1}. Guess a word: ")
@@ -171,6 +176,10 @@ def play() -> None:
         while True:
             clue = input("Enter a clue: ")
             if game_state.clue(clue):
+                new_solution_spaces = []
+                for solution_space in solution_spaces:
+                    new_solution_spaces += expand(solution_space, guess, clue)
+                solution_spaces = new_solution_spaces
                 break
 
         check = input("To perform a fact-or-fiction check, enter the position of the letter in the clue, (e.g. 1, 2, 3)"
@@ -179,6 +188,7 @@ def play() -> None:
             game_state.check(int(check) - 1)
 
         print(game_state)
+        print("len solution spaces: ", len(solution_spaces))
 
 
 if __name__ == "__main__":
