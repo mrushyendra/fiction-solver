@@ -17,6 +17,20 @@ class SolutionSpace:
         return (f"Possible characters: {possible_chrs}\n"
                 f"Confirmed characters: {self.confirmed}")
 
+    def is_word_compatible(self, word: str) -> bool:
+        assert len(word) == 5, f"Word {word} must be 5 characters long"
+        compatible = True
+        for i,c in enumerate(word):
+            if self.confirmed[i] is not None and self.confirmed[i] != c:
+                compatible = False
+                break
+
+            idx = ord(c) - ord('a')
+            if self.possible[i][idx] == 0:
+                compatible = False
+                break
+        return compatible
+
 
 class IncompatibleClueError(Exception):
     pass
@@ -93,5 +107,19 @@ def _update(solution_space: SolutionSpace, guess: str, clue: str) -> SolutionSpa
                         has_space_for_chr = True
             if not has_space_for_chr:
                 raise IncompatibleClueError()
-    print("new solution space: ", new_solution_space.__str__())
     return new_solution_space
+
+
+class Solver:
+    def __init__(self, word_list: list[str]):
+        self.word_list = word_list
+
+    def get_potential_words_for_branch(self, solution_space: SolutionSpace) -> list[str]:
+        return [word for word in self.word_list if solution_space.is_word_compatible(word)]
+
+    def get_potential_words_for_all_branches(self, solution_spaces: list[SolutionSpace]) -> set[str]:
+        return {
+            word
+            for solution_space in solution_spaces
+            for word in self.get_potential_words_for_branch(solution_space)
+        }

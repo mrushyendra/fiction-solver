@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from math import floor
 from typing import Optional
 
-from application.solver import SolutionSpace, expand, initialize_solution_space
+from application.solver import SolutionSpace, expand, initialize_solution_space, Solver
 from application.word_list import word_list
 
 
@@ -164,6 +164,7 @@ def play() -> None:
 
     initial_solution_space = initialize_solution_space()
     solution_spaces = [initial_solution_space]
+    solver = Solver(word_list)
 
     while True:
         while True:
@@ -188,7 +189,12 @@ def play() -> None:
             game_state.check(int(check) - 1)
 
         print(game_state)
+
         print("len solution spaces: ", len(solution_spaces))
+        compatible_words = solver.get_potential_words_for_all_branches(solution_spaces)
+        print("compatible words: ", compatible_words)
+        print("num compatible words: ", len(compatible_words))
+        print("--------------------")
 
 
 if __name__ == "__main__":
