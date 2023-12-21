@@ -186,5 +186,6 @@ class Solver:
                 if not has_space_for_chr:
                     raise IncompatibleClueError()
 
+                new_solution_space.possible[i][guess_chr_idx] = 0
                 new_solution_space.confirmed_position_agnostic.add(guess_chr)
         return new_solution_space

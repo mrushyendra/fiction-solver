@@ -83,6 +83,7 @@ def test_invalid_check():
 
 
 """
+torch
 Known character: t
 #1: abate
 #1: XXXYX
