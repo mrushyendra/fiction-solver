@@ -162,7 +162,7 @@ def play() -> None:
         known_char=known_char.lower(),
     )
 
-    initial_solution_space = initialize_solution_space()
+    initial_solution_space = initialize_solution_space(known_char.lower())
     solution_spaces = [initial_solution_space]
     solver = Solver(word_list)
 

@@ -11,11 +11,16 @@ class SolutionSpace:
     # for positions 0-4, the letter (if any) that is confirmed to be in that position. If no letter is confirmed,
     # the value is None.
     confirmed: list[Optional[str]]
+    # letters that are confirmed to be in the word, although their exact position might be unknown. This is a
+    # superset of `confirmed`. Does not currently support knowing about there being multiple of the same letter
+    # in the word.
+    confirmed_position_agnostic: set[str]
 
     def __str__(self):
         possible_chrs = [[chr(ord('a') + j) for j in range(26) if (self.possible[i][j] == 1)] for i in range(5)]
         return (f"Possible characters: {possible_chrs}\n"
-                f"Confirmed characters: {self.confirmed}")
+                f"Confirmed characters: {self.confirmed}"
+                f"Confirmed position-agnostic characters: {self.confirmed_position_agnostic}")
 
     def is_word_compatible(self, word: str) -> bool:
         assert len(word) == 5, f"Word {word} must be 5 characters long"
@@ -29,6 +34,10 @@ class SolutionSpace:
             if self.possible[i][idx] == 0:
                 compatible = False
                 break
+        for c in self.confirmed_position_agnostic:
+            if c not in word:
+                compatible = False
+                break
         return compatible
 
 
@@ -36,10 +45,11 @@ class IncompatibleClueError(Exception):
     pass
 
 
-def initialize_solution_space() -> SolutionSpace:
+def initialize_solution_space(known_chr: str) -> SolutionSpace:
     return SolutionSpace(
         possible=[[1 for _ in range(26)] for _ in range(5)],
         confirmed=[None for _ in range(5)],
+        confirmed_position_agnostic={known_chr},
     )
 
 
@@ -66,7 +76,6 @@ def expand(solution_space: SolutionSpace, guess: str, clue: str) -> list[Solutio
 def _update(solution_space: SolutionSpace, guess: str, clue: str) -> SolutionSpace:
     new_solution_space = copy.deepcopy(solution_space)
     a = ord('a')
-    print("clue: ", clue)
     for i, (guess_chr, clue_chr) in enumerate(zip(guess, clue)):
         guess_chr_idx: int = ord(guess_chr) - a
 
@@ -75,12 +84,16 @@ def _update(solution_space: SolutionSpace, guess: str, clue: str) -> SolutionSpa
                 raise IncompatibleClueError()
             if new_solution_space.confirmed[i] and new_solution_space.confirmed[i] != guess_chr:
                 raise IncompatibleClueError()
+            if (len(new_solution_space.confirmed_position_agnostic) >= 5
+                    and guess_chr not in new_solution_space.confirmed_position_agnostic):
+                raise IncompatibleClueError()
 
             for j in range(26):
                 if j != guess_chr_idx:
                     new_solution_space.possible[i][j] = 0
 
             new_solution_space.confirmed[i] = guess_chr
+            new_solution_space.confirmed_position_agnostic.add(guess_chr)
 
         elif clue_chr == 'X':
             # We cannot rule out the letter entirely if it appears elsewhere in the guess with a clue of '~' or 'Y'
@@ -97,6 +110,9 @@ def _update(solution_space: SolutionSpace, guess: str, clue: str) -> SolutionSpa
                 raise IncompatibleClueError()
             if new_solution_space.confirmed[i] == guess_chr:
                 raise IncompatibleClueError()
+            if (len(new_solution_space.confirmed_position_agnostic) >= 5
+                    and guess_chr not in new_solution_space.confirmed_position_agnostic):
+                raise IncompatibleClueError()
 
             # Check if there is space for the character to go anywhere else in the word
             has_space_for_chr = False
@@ -106,6 +122,8 @@ def _update(solution_space: SolutionSpace, guess: str, clue: str) -> SolutionSpa
                     has_space_for_chr = True
             if not has_space_for_chr:
                 raise IncompatibleClueError()
+
+            new_solution_space.confirmed_position_agnostic.add(guess_chr)
     return new_solution_space
 
 
