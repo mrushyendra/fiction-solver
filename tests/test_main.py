@@ -80,3 +80,28 @@ def test_invalid_check():
     )
     game_state.check(5) # Out of bounds of the word
     assert(len(game_state.checks) == 0)
+
+
+"""
+Known character: t
+#1: abate
+#1: XXXYX
+#2: amity
+#2: XXXYX
+#3: aorta
+#3: XYYYX
+#4: birth
+#4: XYY~Y
+#5: forth
+#5: XYY~~
+#6: north
+#6: YYY~Y
+#6: Clue for 'n' at position 1 is Fiction
+#7: north
+#7: YYY~Y
+#8: north
+#8: YYY~Y
+#8: Clue for 'r' at position 3 is Fact
+#9: north
+#9: YYY~Y
+"""

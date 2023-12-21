@@ -1,5 +1,6 @@
 import random
 from dataclasses import dataclass
+from enum import Enum
 from math import floor
 from typing import Optional
 
@@ -140,6 +141,15 @@ class GameState:
                 f"-----------------------")
 
 
+class AssistanceLevel(Enum):
+    NO_ASSISTANCE = 0
+    # Provide diagnostic information to guessers, such as the list of words compatible
+    # with the current guesses and clues.
+    HYBRID = 1
+    # All guessing is done by the solver
+    FULLY_AUTOMATED = 2
+
+
 def play() -> None:
     word: Optional[str] = None
     while not word:
@@ -165,6 +175,16 @@ def play() -> None:
           "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n----------------------------\n"
           "Known character: ", known_char, "\n")
 
+    print("Guessers, enter the level of AI-assistance you'd like to use:")
+    assistance_level = None
+    while assistance_level is None:
+        assistance_level = int(input("0: No assistance\n1: Hybrid\n2: Fully automated\n"))
+        if assistance_level not in {0,1,2}:
+            assistance_level = None
+            print("Invalid input. Please try again.\n")
+    print("You've selected: ", assistance_level, "\n")
+    assert isinstance(assistance_level, int)
+
     game_state = GameState(
         word=word.lower(),
         guesses=[],
@@ -174,12 +194,15 @@ def play() -> None:
     )
 
     initial_solution_space = initialize_solution_space(known_char.lower())
-    solution_spaces = [initial_solution_space]
-    solver = Solver(word_list)
+    solver = Solver(word_list, initial_solution_space)
 
     while True:
         while True:
-            guess = input(f"Attempt #{len(game_state.guesses) + 1}. Guess a word: ")
+            if assistance_level == AssistanceLevel.FULLY_AUTOMATED.value:
+                guess = solver.pick_guess()
+                print(f"Attempt #{len(game_state.guesses) + 1}. The computer's guess: ", guess)
+            else:
+                guess = input(f"Attempt #{len(game_state.guesses) + 1}. Guess a word: ")
             if game_state.guess(guess):
                 break
         if game_state.is_game_over():
@@ -197,15 +220,10 @@ def play() -> None:
             if check:
                 fact_or_fiction_check = game_state.check(int(check) - 1)
 
-        solution_spaces = Solver.expand_solution_spaces(solution_spaces, guess, clue, fact_or_fiction_check)
+        if assistance_level != AssistanceLevel.NO_ASSISTANCE.value:
+            solver.expand_solution_spaces(guess, clue, fact_or_fiction_check)
 
         print(game_state)
-
-        print("len solution spaces: ", len(solution_spaces))
-        compatible_words = solver.get_potential_words_for_all_branches(solution_spaces)
-        print("compatible words: ", compatible_words)
-        print("num compatible words: ", len(compatible_words))
-        print("--------------------")
 
 
 if __name__ == "__main__":

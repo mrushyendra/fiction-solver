@@ -54,30 +54,39 @@ def initialize_solution_space(known_chr: str) -> SolutionSpace:
 
 
 class Solver:
-    def __init__(self, word_list: list[str]):
+    def __init__(self, word_list: list[str], initial_solution_space: SolutionSpace):
         self.word_list = word_list
+        self.solution_spaces = [initial_solution_space]
 
-    def get_potential_words_for_branch(self, solution_space: SolutionSpace) -> list[str]:
+    def _get_potential_words_for_branch(self, solution_space: SolutionSpace) -> list[str]:
         return [word for word in self.word_list if solution_space.is_word_compatible(word)]
 
-    def get_potential_words_for_all_branches(self, solution_spaces: list[SolutionSpace]) -> set[str]:
+    def _get_potential_words_for_all_branches(self, solution_spaces: list[SolutionSpace]) -> set[str]:
         return {
             word
             for solution_space in solution_spaces
-            for word in self.get_potential_words_for_branch(solution_space)
+            for word in self._get_potential_words_for_branch(solution_space)
         }
 
-    @classmethod
+    def pick_guess(self) -> str:
+        compatible_words = list(self._get_potential_words_for_all_branches(self.solution_spaces))
+        compatible_words.sort()
+        print("Compatible words: ", compatible_words)
+        print("Number of compatible words: ", len(compatible_words))
+        if not compatible_words:
+            raise Exception("No compatible words found")
+        return compatible_words[0]
+
     def expand_solution_spaces(
-            cls,
-            solution_spaces: list[SolutionSpace],
+            self,
             guess: str, clue: str,
             fact_or_fiction_check: Optional[tuple[int, bool]]
-    ) -> list[SolutionSpace]:
+    ) -> None:
         new_solution_spaces = []
-        for solution_space in solution_spaces:
-            new_solution_spaces += cls.expand_solution_space(solution_space, guess, clue, fact_or_fiction_check)
-        return new_solution_spaces
+        for solution_space in self.solution_spaces:
+            new_solution_spaces += self.expand_solution_space(solution_space, guess, clue, fact_or_fiction_check)
+        self.solution_spaces = new_solution_spaces
+        print("Number of solution space branches: ", len(self.solution_spaces))
 
     # Given the current solution space, a guess and a clue that contains exactly 1 lie, returns a
     # list of solution space branches, where each branch supposes that the lie is in a different
