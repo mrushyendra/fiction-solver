@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from math import floor
 from typing import Optional
 
-from application.solver import SolutionSpace, expand, initialize_solution_space, Solver
+from application.solver import initialize_solution_space, Solver
 from application.word_list import word_list
 
 
@@ -90,6 +90,9 @@ class GameState:
 
         self.clues.append(clue)
         return True
+
+    def has_checks_remaining(self) -> bool:
+        return len(self.checks) < 3
 
     # check the (0-indexed) letter in the most recent clue
     def check(self, position: int) -> None:
@@ -181,16 +184,14 @@ def play() -> None:
         while True:
             clue = input("Enter a clue: ")
             if game_state.clue(clue):
-                new_solution_spaces = []
-                for solution_space in solution_spaces:
-                    new_solution_spaces += expand(solution_space, guess, clue)
-                solution_spaces = new_solution_spaces
+                solution_spaces = Solver.expand_solution_spaces(solution_spaces, guess, clue)
                 break
 
-        check = input("To perform a fact-or-fiction check, enter the position of the letter in the clue, (e.g. 1, 2, 3)"
-                      ". Leave blank to skip: ")
-        if check:
-            game_state.check(int(check) - 1)
+        if game_state.has_checks_remaining():
+            check = input("To perform a fact-or-fiction check, enter the position of the letter in the clue,"
+                          " (e.g. 1, 2, 3). Leave blank to skip: ")
+            if check:
+                game_state.check(int(check) - 1)
 
         print(game_state)
 
