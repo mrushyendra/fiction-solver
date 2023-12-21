@@ -1,4 +1,3 @@
-import copy
 import random
 from dataclasses import dataclass
 from math import floor
@@ -150,7 +149,10 @@ def play() -> None:
             print(f"Your word is: {word}")
         elif len(word) != 5:
             word = ""
-            print("Word must be 5 letters long. Please try again.")
+            print("Word must be 5 letters long. Please try again.\n")
+        elif word not in word_list:
+            word = ""
+            print("Word must be in the accepted Wordle word list. Please try again.\n")
 
     known_char: Optional[str] = None
     while not known_char:
