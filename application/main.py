@@ -139,7 +139,7 @@ class GameState:
 def play() -> None:
     word: Optional[str] = None
     while not word:
-        word = input("Lie-brarian, type a 5 letter word. To use a random word instead, press enter: ")
+        word = input("Librarian, enter a 5 letter word. To use a random word instead, leave blank: ")
         if len(word) == 0:
             word = word_list[floor(random.Random().random() * len(word_list))]
             print(f"Your word is: {word}")
@@ -149,10 +149,14 @@ def play() -> None:
 
     known_char: Optional[str] = None
     while not known_char:
-        known_char = input("Lie-brarian, enter a known character in the word: ")
+        known_char = input("Librarian, enter a character confirmed to be in the word: ")
         if len(known_char) != 1 or known_char not in word:
             known_char = ""
             print("Known character must be a single character in the word. Please try again.")
+
+    print("----------------------------\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+          "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n----------------------------\n"
+          "Known character: ", known_char, "\n")
 
     game_state = GameState(
         word=word.lower(),
