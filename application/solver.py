@@ -68,24 +68,53 @@ class Solver:
         }
 
     @classmethod
-    def expand_solution_spaces(cls, solution_spaces: list[SolutionSpace], guess: str, clue: str) -> list[SolutionSpace]:
+    def expand_solution_spaces(
+            cls,
+            solution_spaces: list[SolutionSpace],
+            guess: str, clue: str,
+            fact_or_fiction_check: Optional[tuple[int, bool]]
+    ) -> list[SolutionSpace]:
         new_solution_spaces = []
         for solution_space in solution_spaces:
-            new_solution_spaces += cls.expand_solution_space(solution_space, guess, clue)
+            new_solution_spaces += cls.expand_solution_space(solution_space, guess, clue, fact_or_fiction_check)
         return new_solution_spaces
 
     # Given the current solution space, a guess and a clue that contains exactly 1 lie, returns a
     # list of solution space branches, where each branch supposes that the lie is in a different
     # position in the clue.
     @classmethod
-    def expand_solution_space(cls, solution_space: SolutionSpace, guess: str, clue: str) -> list[SolutionSpace]:
+    def expand_solution_space(
+            cls,
+            solution_space: SolutionSpace,
+            guess: str,
+            clue: str,
+            fact_or_fiction_check: Optional[tuple[int, bool]]
+    ) -> list[SolutionSpace]:
+        # Generate all possible correct clues, given a clue with a single lie.
         clue_chr_possibilities = ['Y', 'X', '~']
         new_clues = []
-        for i, clue_chr in enumerate(clue):
-            for new_chr in clue_chr_possibilities:
-                if new_chr != clue_chr:
-                    new_clue = clue[:i] + new_chr + clue[i + 1:]
-                    new_clues.append(new_clue)
+
+        if fact_or_fiction_check:
+            position, is_fact = fact_or_fiction_check
+            if not is_fact: # Every other position must be the truth. The lie is at `position`.
+                for new_chr in clue_chr_possibilities:
+                    if new_chr != clue[position]:
+                        new_clue = clue[:position] + new_chr + clue[position + 1:]
+                        new_clues.append(new_clue)
+            else: # There is no lie at `position`
+                for i, clue_chr in enumerate(clue):
+                    if i == position:
+                        continue
+                    for new_chr in clue_chr_possibilities:
+                        if new_chr != clue_chr:
+                            new_clue = clue[:i] + new_chr + clue[i + 1:]
+                            new_clues.append(new_clue)
+        else:
+            for i, clue_chr in enumerate(clue):
+                for new_chr in clue_chr_possibilities:
+                    if new_chr != clue_chr:
+                        new_clue = clue[:i] + new_chr + clue[i + 1:]
+                        new_clues.append(new_clue)
 
         new_solution_spaces = []
         for new_clue in new_clues:

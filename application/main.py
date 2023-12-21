@@ -94,14 +94,15 @@ class GameState:
     def has_checks_remaining(self) -> bool:
         return len(self.checks) < 3
 
-    # check the (0-indexed) letter in the most recent clue
-    def check(self, position: int) -> None:
+    # check the (0-indexed) letter in the most recent clue. Returns the checked position and whether the
+    # corresponding clue was true or false (i.e. a lie).
+    def check(self, position: int) -> Optional[tuple[int, bool]]:
         if len(self.checks) >= 3:
             print("You're out of fact-or-fiction checks!")
-            return
+            return None
         if position >=5 or position < 0:
             print("Position must be between 1 and 5 inclusive")
-            return
+            return None
 
         clue = self.clues[-1]
         guess = self.guesses[-1]
@@ -112,6 +113,7 @@ class GameState:
         else:
             print("Fact")
             self.checks[len(self.guesses) - 1] = (position, True)
+        return self.checks[len(self.guesses) - 1]
 
     def is_game_over(self) -> bool:
         if self.guesses and self.guesses[-1] == self.word:
@@ -184,14 +186,16 @@ def play() -> None:
         while True:
             clue = input("Enter a clue: ")
             if game_state.clue(clue):
-                solution_spaces = Solver.expand_solution_spaces(solution_spaces, guess, clue)
                 break
 
+        fact_or_fiction_check = None
         if game_state.has_checks_remaining():
             check = input("To perform a fact-or-fiction check, enter the position of the letter in the clue,"
                           " (e.g. 1, 2, 3). Leave blank to skip: ")
             if check:
-                game_state.check(int(check) - 1)
+                fact_or_fiction_check = game_state.check(int(check) - 1)
+
+        solution_spaces = Solver.expand_solution_spaces(solution_spaces, guess, clue, fact_or_fiction_check)
 
         print(game_state)
 
