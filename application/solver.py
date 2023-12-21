@@ -20,7 +20,7 @@ class SolutionSpace:
     def is_word_compatible(self, word: str) -> bool:
         assert len(word) == 5, f"Word {word} must be 5 characters long"
         compatible = True
-        for i,c in enumerate(word):
+        for i, c in enumerate(word):
             if self.confirmed[i] is not None and self.confirmed[i] != c:
                 compatible = False
                 break
@@ -73,7 +73,7 @@ def _update(solution_space: SolutionSpace, guess: str, clue: str) -> SolutionSpa
         if clue_chr == 'Y':
             if new_solution_space.possible[i][guess_chr_idx] == 0:
                 raise IncompatibleClueError()
-            if new_solution_space.confirmed[i] is not None and new_solution_space.confirmed[i] != guess_chr:
+            if new_solution_space.confirmed[i] and new_solution_space.confirmed[i] != guess_chr:
                 raise IncompatibleClueError()
 
             for j in range(26):
@@ -92,19 +92,18 @@ def _update(solution_space: SolutionSpace, guess: str, clue: str) -> SolutionSpa
                 if (not squiggly_appears and not (guess[j] == guess_chr and clue[j] == 'Y')) or j == i:
                     new_solution_space.possible[j][guess_chr_idx] = 0
 
-        else: # If the clue was "~"
+        else:  # If the clue was "~"
             if all(new_solution_space.possible[j][guess_chr_idx] == 0 for j in range(5)):
                 raise IncompatibleClueError()
             if new_solution_space.confirmed[i] == guess_chr:
                 raise IncompatibleClueError()
 
-            # No space for the character to go anywhere else in the word
-            num_non_nones_in_confirmed = sum(1 for c in new_solution_space.confirmed if c is not None)
+            # Check if there is space for the character to go anywhere else in the word
             has_space_for_chr = False
-            if num_non_nones_in_confirmed >= 4:
-                for j in range(5):
-                    if j != i and new_solution_space.confirmed[j] is None:
-                        has_space_for_chr = True
+            for j in range(5):
+                if j != i and new_solution_space.confirmed[j] is None and new_solution_space.possible[j][
+                guess_chr_idx] == 1:
+                    has_space_for_chr = True
             if not has_space_for_chr:
                 raise IncompatibleClueError()
     return new_solution_space
