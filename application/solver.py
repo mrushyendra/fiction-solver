@@ -1,6 +1,7 @@
 import copy
 from collections import defaultdict
 from dataclasses import dataclass
+from itertools import takewhile
 from typing import Optional
 
 
@@ -58,6 +59,11 @@ class Solver:
     def __init__(self, word_list: list[str], initial_solution_space: SolutionSpace):
         self.word_list = word_list
         self.solution_spaces = [initial_solution_space]
+        # Map from letter to number of times it occurs in the word list
+        self.letter_to_freq: dict[str, int] = defaultdict(int)
+        for word in word_list:
+            for letter in word:
+                self.letter_to_freq[letter] += 1
 
     def _get_potential_words_for_branch(self, solution_space: SolutionSpace) -> list[str]:
         return [word for word in self.word_list if solution_space.is_word_compatible(word)]
@@ -75,12 +81,24 @@ class Solver:
         for solution_space in self.solution_spaces:
             for word in self._get_potential_words_for_branch(solution_space):
                 word_solution_space_freq[word] += 1
-        sorted_word_freqs = sorted(word_solution_space_freq.items(), key=lambda x: x[1], reverse=True)
+        sorted_word_freqs = sorted(word_solution_space_freq.items(), key=lambda word_freq: word_freq[1], reverse=True)
         print("Compatible words: ", [word for word, _ in sorted_word_freqs])
         print("Number of compatible words: ", len(sorted_word_freqs))
         if not sorted_word_freqs:
             raise Exception("No compatible words found")
-        return sorted_word_freqs[0][0]
+
+        # Among the words that appear the most number of times in the solution spaces, pick the word
+        # whose letters are the most common.
+        max_freq = sorted_word_freqs[0][1]
+        max_freq_words = takewhile(lambda word_freq: word_freq[1] == max_freq, sorted_word_freqs)
+        max_letter_freq_score = 0
+        max_letter_freq_word = None
+        for word, _ in max_freq_words:
+            letter_freq_score = sum(self.letter_to_freq[letter] for letter in word)
+            if letter_freq_score >= max_letter_freq_score:
+                max_letter_freq_score = letter_freq_score
+                max_letter_freq_word = word
+        return max_letter_freq_word
 
     def expand_solution_spaces(
             self,
