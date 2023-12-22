@@ -1,4 +1,5 @@
 import copy
+import random
 from collections import defaultdict
 from dataclasses import dataclass
 from itertools import takewhile
@@ -74,6 +75,12 @@ class Solver:
             for solution_space in solution_spaces
             for word in self._get_potential_words_for_branch(solution_space)
         }
+
+    def pick_clue(self, correct_clue: str) -> str:
+        idx_to_change = random.randint(0, 4)
+        lie_choices = [c for c in {'Y', 'X', '~'} if c != correct_clue[idx_to_change]]
+        new_clue = correct_clue[:idx_to_change] + random.choice(lie_choices) + correct_clue[idx_to_change + 1:]
+        return new_clue
 
     def pick_guess(self) -> str:
         # A map from word to the number of solution spaces that are compatible with that word.

@@ -105,4 +105,16 @@ Known character: t
 #8: Clue for 'r' at position 3 is Fact
 #9: north
 #9: YYY~Y
+
+shine
+Known character: s
+#1: erase
+#1: ~XX~Y
+#2: steel
+#2: ~X~XX
+<--- goes wrong here
+#3: testy
+#3: XY~XX
+#4: fetus
+#4: Y~XX~
 """

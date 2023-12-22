@@ -1,4 +1,5 @@
 import random
+import time
 from dataclasses import dataclass
 from enum import Enum
 from math import floor
@@ -39,7 +40,7 @@ class GameState:
         self.guesses.append(guess)
         return True
 
-    def _generate_correct_clue(self, guess: str) -> str:
+    def generate_correct_clue(self, guess: str) -> str:
         correct_clue = ""
         for i, c in enumerate(guess):
             if c == self.word[i]:
@@ -81,7 +82,7 @@ class GameState:
 
         guess = self.guesses[-1]
         # Build up the correct clue from the guess first
-        correct_clue = self._generate_correct_clue(guess)
+        correct_clue = self.generate_correct_clue(guess)
 
         num_lies: int = sum(1 if c != correct_clue[i] else 0 for i, c in enumerate(clue))
         if num_lies != 1:
@@ -106,7 +107,7 @@ class GameState:
 
         clue = self.clues[-1]
         guess = self.guesses[-1]
-        correct_clue = self._generate_correct_clue(guess)
+        correct_clue = self.generate_correct_clue(guess)
         if correct_clue[position] != clue[position]:
             print("Fiction")
             self.checks[len(self.guesses) - 1] = (position, False)
@@ -150,40 +151,69 @@ class AssistanceLevel(Enum):
     FULLY_AUTOMATED = 2
 
 
+class Side(Enum):
+    LIBRARIAN = 1
+    GUESSER = 2
+    BOTH = 3
+
+
 def play() -> None:
+    side: Optional[Side] = None
+    while not side:
+        try:
+            side = Side(int(input("Welcome! Pick a side. To play as a librarian, enter '1'. To play as a guesser,"
+                                  " enter '2'. To play both sides, enter '3'.\n")))
+        except ValueError:
+            print("Invalid input. Please try again.")
+            continue
+    print(f"Playing as {side.name}")
+    print("----------------------------")
+
     word: Optional[str] = None
     while not word:
-        word = input("Librarian, enter a 5 letter word. To use a random word instead, leave blank: ")
-        if len(word) == 0:
+        if side != Side.GUESSER:
+            word = input("Librarian, enter a 5 letter word. To use a random word instead, leave blank: ")
+
+        if not word or len(word) == 0:
             word = word_list[floor(random.Random().random() * len(word_list))]
-            print(f"Your word is: {word}")
         elif len(word) != 5:
             word = ""
             print("Word must be 5 letters long. Please try again.\n")
         elif word not in word_list:
             word = ""
             print("Word must be in the accepted Wordle word list. Please try again.\n")
+    if side != Side.GUESSER:
+        print(f"Your word is: {word}")
 
     known_char: Optional[str] = None
-    while not known_char:
-        known_char = input("Librarian, enter a character confirmed to be in the word: ")
-        if len(known_char) != 1 or known_char not in word:
-            known_char = ""
-            print("Known character must be a single character in the word. Please try again.")
+    if side != Side.GUESSER:
+        while not known_char:
+            known_char = input("Librarian, enter a character confirmed to be in the word: ")
+            if len(known_char) != 1 or known_char not in word:
+                known_char = ""
+                print("Known character must be a single character in the word. Please try again.")
+    else:
+        known_char = word[random.randint(0, 4)]
+    print(f"Known character: {known_char}")
+    print("----------------------------")
 
-    print("----------------------------\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
-          "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n----------------------------\n"
-          "Known character: ", known_char, "\n")
-
-    print("Guessers, enter the level of AI-assistance you'd like to use:")
-    assistance_level = None
+    print("Enter the level of AI-assistance you'd like to use:")
+    assistance_level: Optional[AssistanceLevel] = None
     while assistance_level is None:
-        assistance_level = int(input("0: No assistance\n1: Hybrid\n2: Fully automated\n"))
-        if assistance_level not in {0,1,2}:
-            assistance_level = None
+        try:
+            assistance_level = AssistanceLevel(int(input("0: No assistance\n1: Hybrid\n2: Fully automated\n")))
+        except ValueError:
             print("Invalid input. Please try again.\n")
-    print("You've selected: ", assistance_level, "\n")
-    assert isinstance(assistance_level, int)
+    print(f"You've selected: {assistance_level.name}")
+    print("----------------------------")
+
+    print("Starting game in 3...")
+    time.sleep(1)
+    print("Starting game in 2...")
+    time.sleep(1)
+    print("Starting game in 1...")
+    time.sleep(1)
+    print("----------------------------")
 
     game_state = GameState(
         word=word.lower(),
@@ -198,7 +228,7 @@ def play() -> None:
 
     while True:
         while True:
-            if assistance_level == AssistanceLevel.FULLY_AUTOMATED.value:
+            if assistance_level == AssistanceLevel.FULLY_AUTOMATED or side == Side.LIBRARIAN:
                 guess = solver.pick_guess()
                 print(f"Attempt #{len(game_state.guesses) + 1}. The computer's guess: ", guess)
             else:
@@ -209,18 +239,26 @@ def play() -> None:
             break
 
         while True:
-            clue = input("Enter a clue: ")
+            if assistance_level == AssistanceLevel.FULLY_AUTOMATED or side == Side.GUESSER:
+                clue = solver.pick_clue(game_state.generate_correct_clue(guess))
+                print("The computer's clue: ", clue)
+            else:
+                clue = input("Enter a clue: ")
             if game_state.clue(clue):
                 break
 
         fact_or_fiction_check = None
         if game_state.has_checks_remaining():
-            check = input("To perform a fact-or-fiction check, enter the position of the letter in the clue,"
-                          " (e.g. 1, 2, 3). Leave blank to skip: ")
+            if ((assistance_level == AssistanceLevel.HYBRID or assistance_level == AssistanceLevel.NO_ASSISTANCE)
+                    and side != Side.LIBRARIAN):
+                check = input("To perform a fact-or-fiction check, enter the position of the letter in the clue,"
+                              " (e.g. 1, 2, 3). Leave blank to skip: ")
+            else:
+                check = None
             if check:
                 fact_or_fiction_check = game_state.check(int(check) - 1)
 
-        if assistance_level != AssistanceLevel.NO_ASSISTANCE.value:
+        if assistance_level != AssistanceLevel.NO_ASSISTANCE:
             solver.expand_solution_spaces(guess, clue, fact_or_fiction_check)
 
         print(game_state)
