@@ -1,4 +1,5 @@
 import copy
+from collections import defaultdict
 from dataclasses import dataclass
 from typing import Optional
 
@@ -69,13 +70,17 @@ class Solver:
         }
 
     def pick_guess(self) -> str:
-        compatible_words = list(self._get_potential_words_for_all_branches(self.solution_spaces))
-        compatible_words.sort()
-        print("Compatible words: ", compatible_words)
-        print("Number of compatible words: ", len(compatible_words))
-        if not compatible_words:
+        # A map from word to the number of solution spaces that are compatible with that word.
+        word_solution_space_freq: dict[str, int] = defaultdict(int)
+        for solution_space in self.solution_spaces:
+            for word in self._get_potential_words_for_branch(solution_space):
+                word_solution_space_freq[word] += 1
+        sorted_word_freqs = sorted(word_solution_space_freq.items(), key=lambda x: x[1], reverse=True)
+        print("Compatible words: ", [word for word, _ in sorted_word_freqs])
+        print("Number of compatible words: ", len(sorted_word_freqs))
+        if not sorted_word_freqs:
             raise Exception("No compatible words found")
-        return compatible_words[0]
+        return sorted_word_freqs[0][0]
 
     def expand_solution_spaces(
             self,
