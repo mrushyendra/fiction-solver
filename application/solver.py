@@ -89,7 +89,7 @@ class Solver:
             for word in self._get_potential_words_for_branch(solution_space):
                 word_solution_space_freq[word] += 1
         sorted_word_freqs = sorted(word_solution_space_freq.items(), key=lambda word_freq: word_freq[1], reverse=True)
-        print("Compatible words: ", [word for word, _ in sorted_word_freqs])
+        print("Compatible words: ", sorted([word for word, _ in sorted_word_freqs]))
         print("Number of compatible words: ", len(sorted_word_freqs))
         if not sorted_word_freqs:
             raise Exception("No compatible words found")
@@ -210,7 +210,8 @@ class Solver:
                 # Check if there is space for the character to go anywhere else in the word
                 has_space_for_chr = False
                 for j in range(5):
-                    if (j != i and new_solution_space.confirmed[j] is None
+                    if (j != i and
+                            (new_solution_space.confirmed[j] is None or new_solution_space.confirmed[j] == guess_chr)
                             and new_solution_space.possible[j][guess_chr_idx] == 1):
                         has_space_for_chr = True
                 if not has_space_for_chr:

@@ -194,7 +194,7 @@ def play() -> None:
                 print("Known character must be a single character in the word. Please try again.")
     else:
         known_char = word[random.randint(0, 4)]
-    print(f"Known character: {known_char}")
+    print(f"Starting clue: `{known_char}` exists in the word.")
     print("----------------------------")
 
     print("Enter the level of AI-assistance you'd like to use:")
