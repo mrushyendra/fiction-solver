@@ -136,7 +136,6 @@ class GameState:
                 guesses_str += f"#{i + 1}: Clue for '{guess[position]}' at position {position + 1} is {is_fact}\n"
 
         return (f"-----------------------\n"
-                f"Number of guesses: {len(self.guesses)}\n"
                 f"Known character: {self.known_char}\n"
                 f"{guesses_str}"
                 f"-----------------------")
@@ -144,11 +143,8 @@ class GameState:
 
 class AssistanceLevel(Enum):
     NO_ASSISTANCE = 0
-    # Provide diagnostic information to guessers, such as the list of words compatible
-    # with the current guesses and clues.
-    HYBRID = 1
     # All guessing is done by the solver
-    FULLY_AUTOMATED = 2
+    FULLY_AUTOMATED = 1
 
 
 class Side(Enum):
@@ -201,7 +197,7 @@ def play() -> None:
     assistance_level: Optional[AssistanceLevel] = None
     while assistance_level is None:
         try:
-            assistance_level = AssistanceLevel(int(input("0: No assistance\n1: Hybrid\n2: Fully automated\n")))
+            assistance_level = AssistanceLevel(int(input("0: No assistance\n1: Fully automated\n")))
         except ValueError:
             print("Invalid input. Please try again.\n")
     print(f"You've selected: {assistance_level.name}")
@@ -240,7 +236,7 @@ def play() -> None:
 
         while True:
             if assistance_level == AssistanceLevel.FULLY_AUTOMATED or side == Side.GUESSER:
-                clue = solver.pick_clue(game_state.generate_correct_clue(guess))
+                clue = solver.pick_clue(game_state.generate_correct_clue(guess), guess)
                 print("The computer's clue: ", clue)
             else:
                 clue = input("Enter a clue: ")
@@ -249,8 +245,7 @@ def play() -> None:
 
         fact_or_fiction_check = None
         if game_state.has_checks_remaining():
-            if ((assistance_level == AssistanceLevel.HYBRID or assistance_level == AssistanceLevel.NO_ASSISTANCE)
-                    and side != Side.LIBRARIAN):
+            if assistance_level == AssistanceLevel.NO_ASSISTANCE and side != Side.LIBRARIAN:
                 check = input("To perform a fact-or-fiction check, enter the position of the letter in the clue,"
                               " (e.g. 1, 2, 3). Leave blank to skip: ")
             # Choose whether to fact-or-fiction check because AssistanceLevel.FULLY_AUTOMATED or side == Side.LIBRARIAN
@@ -264,9 +259,7 @@ def play() -> None:
             if check:
                 fact_or_fiction_check = game_state.check(int(check) - 1)
 
-        if assistance_level != AssistanceLevel.NO_ASSISTANCE:
-            solver.expand_solution_spaces(guess, clue, fact_or_fiction_check)
-
+        solver.expand_solution_spaces(guess, clue, fact_or_fiction_check)
         print(game_state)
 
 

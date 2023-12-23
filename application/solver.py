@@ -25,23 +25,23 @@ class SolutionSpace:
                 f"Confirmed characters: {self.confirmed}"
                 f"Confirmed position-agnostic characters: {self.confirmed_position_agnostic}")
 
-    def is_word_compatible(self, word: str) -> bool:
+    def is_word_possible(self, word: str) -> bool:
         assert len(word) == 5, f"Word {word} must be 5 characters long"
-        compatible = True
+        possible = True
         for i, c in enumerate(word):
             if self.confirmed[i] is not None and self.confirmed[i] != c:
-                compatible = False
+                possible = False
                 break
 
             idx = ord(c) - ord('a')
             if self.possible[i][idx] == 0:
-                compatible = False
+                possible = False
                 break
         for c in self.confirmed_position_agnostic:
             if c not in word:
-                compatible = False
+                possible = False
                 break
-        return compatible
+        return possible
 
 
 class IncompatibleClueError(Exception):
@@ -67,7 +67,7 @@ class Solver:
                 self.letter_to_freq[letter] += 1
 
     def _get_potential_words_for_branch(self, solution_space: SolutionSpace) -> list[str]:
-        return [word for word in self.word_list if solution_space.is_word_compatible(word)]
+        return [word for word in self.word_list if solution_space.is_word_possible(word)]
 
     def _get_potential_words_for_all_branches(self, solution_spaces: list[SolutionSpace]) -> set[str]:
         return {
@@ -76,11 +76,32 @@ class Solver:
             for word in self._get_potential_words_for_branch(solution_space)
         }
 
-    def pick_clue(self, correct_clue: str) -> str:
-        idx_to_change = random.randint(0, 4)
-        lie_choices = [c for c in {'Y', 'X', '~'} if c != correct_clue[idx_to_change]]
-        new_clue = correct_clue[:idx_to_change] + random.choice(lie_choices) + correct_clue[idx_to_change + 1:]
-        return new_clue
+    def pick_clue(self, correct_clue: str, guess: str) -> str:
+        # Generate all potential clues with 1 lie in them
+        new_clues = []
+        for i in range(0,4):
+            for new_chr in {'Y', 'X', '~'}:
+                if new_chr != correct_clue[i]:
+                    new_clue = correct_clue[:i] + new_chr + correct_clue[i + 1:]
+                    new_clues.append(new_clue)
+
+        # Pick the lie that leaves the most solution spaces open
+        # (used as rough proxy for number of possible words, although these may diverge)
+        best_clue = None
+        best_clue_score = 0
+        for clue in new_clues:
+            new_solution_spaces = []
+            for solution_space in self.solution_spaces:
+                try:
+                    new_solution_space = Solver._update(solution_space, guess, clue)
+                    new_solution_spaces.append(new_solution_space)
+                except IncompatibleClueError:
+                    continue
+            if len(new_solution_spaces) > best_clue_score:
+                best_clue = clue
+                best_clue_score = len(new_solution_spaces)
+
+        return best_clue
 
     def pick_guess(self) -> str:
         # A map from word to the number of solution spaces that are compatible with that word.
@@ -89,10 +110,9 @@ class Solver:
             for word in self._get_potential_words_for_branch(solution_space):
                 word_solution_space_freq[word] += 1
         sorted_word_freqs = sorted(word_solution_space_freq.items(), key=lambda word_freq: word_freq[1], reverse=True)
-        print("Compatible words: ", sorted([word for word, _ in sorted_word_freqs]))
-        print("Number of compatible words: ", len(sorted_word_freqs))
+        print("Possible words: ", sorted([word for word, _ in sorted_word_freqs]), " | Size: ", len(sorted_word_freqs))
         if not sorted_word_freqs:
-            raise Exception("No compatible words found")
+            raise Exception("No possible words found")
 
         # Among the words that appear the most number of times in the solution spaces, pick the word
         # whose letters are the most common.
@@ -116,7 +136,6 @@ class Solver:
         for solution_space in self.solution_spaces:
             new_solution_spaces += self.expand_solution_space(solution_space, guess, clue, fact_or_fiction_check)
         self.solution_spaces = new_solution_spaces
-        print("Number of solution space branches: ", len(self.solution_spaces))
 
     # Given the current solution space, a guess and a clue that contains exactly 1 lie, returns a
     # list of solution space branches, where each branch supposes that the lie is in a different
