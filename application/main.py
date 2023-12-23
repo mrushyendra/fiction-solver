@@ -253,8 +253,14 @@ def play() -> None:
                     and side != Side.LIBRARIAN):
                 check = input("To perform a fact-or-fiction check, enter the position of the letter in the clue,"
                               " (e.g. 1, 2, 3). Leave blank to skip: ")
+            # Choose whether to fact-or-fiction check because AssistanceLevel.FULLY_AUTOMATED or side == Side.LIBRARIAN
             else:
-                check = None
+                # We could be smarter here, but instead just check a random letter in every 3rd clue for now.
+                if len(game_state.clues) % 3 == 0:
+                    check = random.randint(1,5)
+                    print(f"Automatically checking position {check}")
+                else:
+                    check = None
             if check:
                 fact_or_fiction_check = game_state.check(int(check) - 1)
 
