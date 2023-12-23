@@ -46,3 +46,5 @@ the clue that leaves the most spaces open is chosen. To decide on a guess,
 the opposite is true: the guess that leaves the fewest spaces open is chosen.
 If there is a tie, the word with the letters that occur most frequently in
 the dictionary is chosen.
+
+![Simplified snippet of the algorithm](./fiction-solver.png)
