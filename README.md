@@ -21,7 +21,7 @@ computer.
 
 # Install
 
-Run Docker. Then, in a terminal window, run the following command:
+Ensure Docker is running. In a terminal window, run the following command:
 
 ```
 ./run.sh build
@@ -36,7 +36,7 @@ Run Docker. Then, in a terminal window, run the following command:
 The game offers 2 modes: no assistance or fully-automated. In no-assistance mode,
 the Librarian or the guesser(s) must manually enter the clues and guesses respectively.
 In fully-automated mode, the computer will automatically choose the clue or guess it
-deeems best.
+deems best.
 
 # Under the hood
 
@@ -53,3 +53,14 @@ is chosen. If there is a tie, the word with the letters that occur most frequent
 in the dictionary is chosen.
 
 ![Simplified snippet of the algorithm](./fiction-solver.png)
+
+# Run simulations
+
+Running the following command:
+
+```
+./run.sh integration-test 10
+```
+
+Causes the solver to be invoked in fully-automated mode several 10 times in succession.
+The results are printed to the console.

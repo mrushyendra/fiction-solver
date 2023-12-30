@@ -2,6 +2,7 @@
 set -e
 
 COMMAND="$1"
+NUM_SIMULATIONS="$2"
 
 if [[ $COMMAND == "build" ]]; then
   echo "===== Building ====="
@@ -21,7 +22,7 @@ elif [[ $COMMAND == "unit-test" ]]; then
   exit
 elif [[ $COMMAND == "integration-test" ]]; then
   echo "===== Running test suite ====="
-  docker-compose run -e PYTHONPATH=. --rm game tests/integration_test.sh
+  docker-compose run -e PYTHONPATH=. --rm game tests/integration_test.sh "$NUM_SIMULATIONS"
   exit
 fi
 
@@ -31,4 +32,4 @@ echo "    build - Builds services."
 echo "    start - Starts services."
 echo "    stop - Force-stops services (in case CTRL+C did not work)."
 echo "    unit-test - Runs unit test suite."
-echo "    integration-test - Runs integrations tests."
+echo "    integration-test <NUM_SIMULATIONS> - Runs integrations tests."

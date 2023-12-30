@@ -2,7 +2,7 @@
 
 # Runs the program repeatedly in fully automated mode and checks that it terminates correctly.
 
-NUM_SIMULATIONS=10
+NUM_SIMULATIONS=$1
 GUESSER_WINS_COUNT=0
 LIBRARIAN_WINS_COUNT=0
 TOTAL_NUM_ATTEMPTS=0
@@ -18,7 +18,6 @@ for i in $(seq 1 $NUM_SIMULATIONS); do
 
   GUESSER_WINS=$(echo $result | grep -o "Guessers win!")
   LIBRARIAN_WINS=$(echo $result | grep -o "Librarians win!")
-  # Given the result "Attempt #6. The computer’s guess:  foist", extract the number 6
   NUM_ATTEMPTS=$(echo $result | cut -d'#' -f2 | cut -d'.' -f1)
   echo "Number of attempts: $NUM_ATTEMPTS"
 
