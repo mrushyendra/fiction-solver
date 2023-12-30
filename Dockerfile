@@ -17,4 +17,5 @@ COPY . $APP_CODE_DIR
 
 EXPOSE 5808
 
+RUN ["chmod", "+x", "tests/integration_test.sh"]
 CMD ["python", "application/main.py"]

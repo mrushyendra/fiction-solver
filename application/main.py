@@ -1,4 +1,5 @@
 import random
+import sys
 import time
 from dataclasses import dataclass
 from enum import Enum
